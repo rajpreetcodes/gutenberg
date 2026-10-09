@@ -8,6 +8,7 @@
 
 ### Enhancements
 
+-   Image, Gallery, Cover, Audio, Video, Site Logo, and Playlist: Open toolbar media and text popovers with the default popover instead of the high-contrast `toolbar` variant.
 -   Query: List the existing terms in the taxonomy filters, so categories and tags can be browsed and selected instead of recalled and typed. The controls now use `SearchableChipSelectControl` from `@wordpress/ui` ([#82583](https://github.com/WordPress/gutenberg/pull/82583)).
 
 ## 11.2.0 (2026-10-07)
