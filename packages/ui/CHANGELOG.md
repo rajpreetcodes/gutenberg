@@ -25,6 +25,10 @@
 
 -   Add popup width stories for Autocomplete, Combobox, Select, SearchableSelect, and SearchableChipSelect ([#84320](https://github.com/WordPress/gutenberg/pull/84320)).
 
+### Internal
+
+-   Update Base UI to 1.9.0.
+
 ## 0.24.0 (2026-10-07)
 
 ### Breaking Changes
