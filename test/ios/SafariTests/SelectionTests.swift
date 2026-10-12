@@ -8,6 +8,7 @@ final class SelectionTests: XCTestCase {
 	let safari = XCUIApplication( bundleIdentifier: "com.apple.mobilesafari" )
 
 	var web: XCUIElement { safari.webViews.firstMatch }
+	var editor: Editor { Editor( safari: safari ) }
 
 	override func setUpWithError() throws {
 		continueAfterFailure = false
@@ -34,12 +35,6 @@ final class SelectionTests: XCTestCase {
 		XCTAssertTrue( safari.wait( for: .runningForeground, timeout: 30 ) )
 	}
 
-	func paragraphs() -> [ String ] {
-		web.textViews.matching( NSPredicate( format: "label == 'Block: Paragraph'" ) )
-			.allElementsBoundByIndex
-			.map { $0.value as? String ?? "" }
-	}
-
 	func paragraph( startingWith text: String ) -> XCUIElement {
 		web.textViews.matching( NSPredicate( format: "value BEGINSWITH %@", text ) ).firstMatch
 	}
@@ -64,32 +59,27 @@ final class SelectionTests: XCTestCase {
 
 		// Double tap the first word, "Delta".
 		point( target.minX + 15, target.midY ).doubleTap()
-		let cut = safari.menuItems[ "Cut" ]
-		XCTAssertTrue( cut.waitForExistence( timeout: 5 ), "The double tap did not select a word" )
+		let editMenu = safari.menuItems[ "Cut" ]
+		XCTAssertTrue( editMenu.waitForExistence( timeout: 5 ), "The double tap did not select a word" )
 
 		// The start handle's knob sits above the line, at the start of the
 		// word. The selection moves by as much as the finger does, so drag
-		// the knob up by the distance between the two paragraphs, into
-		// "bravo".
+		// the knob straight up by the distance between the two paragraphs,
+		// to the start of the first one.
 		let knob = target.minY - 6
+		let up = target.minY - first.minY
 		point( target.minX + 1, knob ).press(
 			forDuration: 0.5,
-			thenDragTo: point( first.minX + 60, knob - ( target.minY - first.minY ) ),
+			thenDragTo: point( target.minX + 1, knob - up ),
 			withVelocity: 60,
 			thenHoldForDuration: 1
 		)
+		XCTAssertTrue( editMenu.waitForExistence( timeout: 5 ), "The drag lost the selection" )
 
-		XCTAssertTrue( cut.waitForExistence( timeout: 5 ), "The drag lost the selection" )
-		cut.tap()
+		safari.keyboards.keys[ "delete" ].tap()
 
-		// Cutting a selection across the two paragraphs joins what is left
+		// Deleting a selection across the two paragraphs joins what is left
 		// of them into one.
-		let joined = NSPredicate( format: "value BEGINSWITH 'Alpha b' AND value ENDSWITH 'echo foxtrot'" )
-		XCTAssertTrue(
-			web.textViews.matching( joined ).firstMatch.waitForExistence( timeout: 5 ),
-			"The selection did not extend into the previous paragraph: \( paragraphs() )"
-		)
-		XCTAssertFalse( paragraphs().contains { $0.contains( "Delta" ) }, "The selected word is still there" )
-		XCTAssertEqual( paragraphs().count, 1, "The two paragraphs did not join" )
+		editor.expectBlocks( [ Block( title: "Paragraph", text: " echo foxtrot" ) ] )
 	}
 }
